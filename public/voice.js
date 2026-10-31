@@ -7,7 +7,9 @@ const voice = (() => {
   function pick() {
     if (!synth || chosen) return chosen;
     const voices = synth.getVoices().filter((v) => /^en/i.test(v.lang));
-    chosen = voices.find((v) => /female|samantha|google us english|zira|aria/i.test(v.name)) || voices[0] || null;
+    const us = voices.filter((v) => /en[-_]US/i.test(v.lang));
+    chosen = us.find((v) => /google us english|samantha|aria|jenny|zira|female/i.test(v.name)) || us[0]
+      || voices.find((v) => /female|samantha|zira|aria/i.test(v.name)) || voices[0] || null;
     return chosen;
   }
   if (synth) synth.onvoiceschanged = () => { chosen = null; pick(); };
@@ -25,8 +27,9 @@ const voice = (() => {
         const u = new SpeechSynthesisUtterance(text);
         const v = pick();
         if (v) u.voice = v;
-        u.rate = 0.95;
-        u.pitch = 1.25;
+        u.lang = 'en-US';
+        u.rate = 1;
+        u.pitch = 1.15;
         synth.speak(u);
       } catch {}
     },

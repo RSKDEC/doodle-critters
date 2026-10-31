@@ -99,8 +99,11 @@ function later(ms, fn) {
   timers.push(setTimeout(fn, ms));
 }
 
+const MUSIC_SCENES = { lobby: 'lobby', draw: 'lobby', meet: 'lobby', intro: 'game', play: 'game', results: 'party', parade: 'party' };
+
 function syncMusic() {
   if (!state) return;
+  sound.scene(MUSIC_SCENES[state.phase] || 'lobby');
   sound.music(state.phase !== 'lobby' || state.players.length > 0);
 }
 
@@ -158,11 +161,13 @@ function cues(prev, s) {
     }
     case 'play':
       sound.play('whoosh');
-      if (s.game !== 'seek') later(300, () => voice.say('Go!'));
+      if (s.game !== 'seek') later(300, () => voice.say('Ready, set, go!'));
       break;
     case 'results':
-      voice.say(['Great job, everyone!', 'Wow, look at all those stars!', 'You are amazing!'][s.gameIdx % 3]);
-      for (let i = 0; i < 3; i++) later(700 + i * 450, () => sound.play('star'));
+      sound.play('drumroll', 1.2);
+      later(1250, () => { sound.play('crash'); sound.play('applause'); });
+      later(1600, () => voice.say(['Awesome job, everybody!', 'Way to go, critters!', 'You guys rock!', 'High fives all around!'][s.gameIdx % 4]));
+      for (let i = 0; i < 3; i++) later(1400 + i * 450, () => sound.play('star'));
       break;
     case 'parade':
       sound.play('fanfare');

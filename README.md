@@ -81,7 +81,7 @@ public/games/*.js    The mini-games (TV side): balloon, dragon, seek, feather
 public/play.*        Phone controller: join, drawing pad, mic meter, flashlight pad, spot picker
 public/critter.js    Turns a drawing into a living critter (googly eyes, feet, animation)
 public/mic.js        Microphone → 0..1 "effort" above the room's background noise
-public/sound.js      Synthesized sound effects and an original music loop
+public/sound.js      Synthesized American-style soundtrack (rock-'n'-roll, banjo hoedown, marching band; Halloween versions) and game-show sound effects
 public/voice.js      Reads instructions aloud on the TV (Android TV app: via Android's voice)
 public/halloween.js  Halloween art: ghost, pumpkins, bats, decorations, critter costumes
 public/cast.js       Chromecast sender (phone's Cast button)
