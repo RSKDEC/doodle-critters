@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#8fd3ff">
+  <title>Doodle Critters</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="landing-body">
+  <main class="landing">
+    <h1 class="logo" id="logo">Doodle Critters</h1>
+    <p>Draw a critter on a phone and watch it come alive on the TV!</p>
+    <div class="choices">
+      <a class="big primary" href="/host">📺 Put the game on this screen</a>
+      <a class="big" href="/play">📱 Join with a phone</a>
+    </div>
+  </main>
+  <script src="/critter.js"></script>
+  <script>
+    document.getElementById('logo').innerHTML = 'Doodle Critters'.split('').map((ch, i) =>
+      ch === ' ' ? ' ' : `<span style="color:${CRITTER_COLORS[i % 8]}">${ch}</span>`).join('');
+  </script>
+</body>
+</html>
