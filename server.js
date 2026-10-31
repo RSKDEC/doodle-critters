@@ -17,6 +17,19 @@ const pub = path.join(__dirname, 'public');
 app.use(express.static(pub));
 app.get('/host', (req, res) => res.sendFile(path.join(pub, 'host.html')));
 app.get('/play', (req, res) => res.sendFile(path.join(pub, 'play.html')));
+// Chromecast Web Receiver (register https://<host>/cast in the Google Cast console).
+app.get('/cast', (req, res) => res.sendFile(path.join(pub, 'cast.html')));
+// The Android TV app (android-tv/) opens this: the TV screen without buttons.
+app.get('/tv', (req, res) => res.sendFile(path.join(pub, 'tv.html')));
+// Short address for downloading the Android TV app onto the TV.
+app.get('/app', (req, res) => res.redirect('/doodle-critters-tv.apk'));
+// Runtime config for the phones. The Cast App ID is public (every sender sees it);
+// CAST_APP_ID overrides the default, e.g. for a second deployment.
+const CAST_APP_ID = process.env.CAST_APP_ID ?? '';
+app.get('/config.js', (req, res) => {
+  res.type('application/javascript').set('Cache-Control', 'no-store');
+  res.send(`window.CRITTERS_CONFIG = ${JSON.stringify({ castAppId: CAST_APP_ID })};`);
+});
 
 const rooms = new Map();
 

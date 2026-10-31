@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b6e6ff"/>
+      <stop offset="1" stop-color="#5ab4f0"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <g id="art" stroke-linecap="round" stroke-linejoin="round">
+    <!-- doodled sky: stars and a squiggle -->
+    <path d="M92 92 l9 22 23 2 -18 15 6 23 -20 -13 -20 13 6 -23 -18 -15 23 -2z" fill="#fff6b0" stroke="#fff" stroke-width="4"/>
+    <path d="M418 118 l6 14 15 1 -12 10 4 15 -13 -8 -13 8 4 -15 -12 -10 15 -1z" fill="#fff6b0" stroke="#fff" stroke-width="4"/>
+    <path d="M60 230 q20 -20 40 0 t40 0" fill="none" stroke="#fff" stroke-width="8" opacity=".8"/>
+    <circle cx="440" cy="200" r="7" fill="#fff"/><circle cx="150" cy="70" r="6" fill="#fff"/>
+    <!-- shadow -->
+    <ellipse cx="262" cy="448" rx="130" ry="16" fill="rgba(20,60,110,.25)"/>
+    <!-- feet -->
+    <ellipse cx="222" cy="420" rx="36" ry="19" fill="#3a2f2a"/>
+    <ellipse cx="305" cy="420" rx="36" ry="19" fill="#3a2f2a"/>
+    <!-- antenna -->
+    <path d="M272 150 C262 112 302 98 292 68" fill="none" stroke="#2b2b2b" stroke-width="10"/>
+    <circle cx="292" cy="62" r="15" fill="#ffd23f" stroke="#2b2b2b" stroke-width="8"/>
+    <!-- waving arm -->
+    <path d="M146 300 Q104 292 98 252" fill="none" stroke="#2b2b2b" stroke-width="13"/>
+    <circle cx="96" cy="244" r="13" fill="#ff7aa2" stroke="#2b2b2b" stroke-width="8"/>
+    <!-- body: a wobbly crayon-drawn blob -->
+    <path d="M140 300 C130 200 215 138 280 144 C360 152 396 230 383 305 C371 376 306 414 246 407 C182 400 147 362 140 300 Z"
+      fill="#ff7aa2" stroke="#2b2b2b" stroke-width="14"/>
+    <path d="M182 352 l34 -22 M198 372 l34 -22 M330 220 l30 -18 M340 240 l24 -14" stroke="#f0558a" stroke-width="9" fill="none"/>
+    <!-- googly eyes (mismatched) -->
+    <circle cx="222" cy="252" r="44" fill="#fff" stroke="#2b2b2b" stroke-width="10"/>
+    <circle cx="236" cy="262" r="19" fill="#1d1d1d"/><circle cx="242" cy="255" r="6" fill="#fff"/>
+    <circle cx="318" cy="246" r="33" fill="#fff" stroke="#2b2b2b" stroke-width="10"/>
+    <circle cx="328" cy="254" r="14" fill="#1d1d1d"/><circle cx="332" cy="249" r="5" fill="#fff"/>
+    <!-- big smile with tongue -->
+    <path d="M232 322 Q270 362 314 318" fill="none" stroke="#2b2b2b" stroke-width="12"/>
+    <path d="M258 340 q14 18 30 -2" fill="#e8455f" stroke="#2b2b2b" stroke-width="6"/>
+    <circle cx="190" cy="305" r="13" fill="#ff4f86" opacity=".7"/><circle cx="352" cy="298" r="11" fill="#ff4f86" opacity=".7"/>
+    <!-- arm holding a crayon -->
+    <g transform="rotate(28 430 250)">
+      <rect x="412" y="168" width="38" height="104" rx="6" fill="#2f80ed" stroke="#2b2b2b" stroke-width="8"/>
+      <rect x="412" y="196" width="38" height="20" fill="#fff" opacity=".85"/>
+      <path d="M412 168 L431 128 L450 168Z" fill="#2f80ed" stroke="#2b2b2b" stroke-width="8"/>
+    </g>
+    <path d="M380 300 Q418 296 428 262" fill="none" stroke="#2b2b2b" stroke-width="13"/>
+    <circle cx="428" cy="262" r="13" fill="#ff7aa2" stroke="#2b2b2b" stroke-width="8"/>
+  </g>
+</svg>

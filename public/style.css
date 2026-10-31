@@ -279,3 +279,15 @@ input:focus { outline: none; border-color: var(--pink); }
 .stars.big { font-size: 4rem; }
 .timerline { margin: -4px 0; }
 .phone .fuse { height: 10px; }
+
+/* ---------- Chromecast & app icon ---------- */
+.bar .castbtn { margin-left: auto; margin-right: 10px; padding: 4px 12px; font-size: .9rem; box-shadow: none; background: #eef6ff; }
+.bar .castbtn.on { background: var(--good); color: #fff; }
+.cast-splash { flex: 1; display: grid; place-content: center; text-align: center; gap: 2vh; }
+.cast-splash .title { font-size: 6vw; font-weight: 800; text-shadow: 0 .5vw 0 rgba(38,49,79,.15); }
+.cast-splash p { font-size: 2vw; animation: pulse 1.6s infinite; margin: 0; }
+.hero-icon { display: block; margin: 0 auto; width: 140px; height: 140px; border-radius: 30px; box-shadow: 0 12px 30px rgba(38,49,79,.25); animation: pop .5s both; }
+.cast-splash .hero-icon { width: 16vw; height: 16vw; border-radius: 3.6vw; animation: pop .6s both, bounce 2.4s ease-in-out .6s infinite; }
+.phone .join-head { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.phone .join-head img { width: 54px; height: 54px; border-radius: 13px; box-shadow: 0 4px 12px rgba(38,49,79,.25); }
+.phone .join-head .logo { font-size: 2.2rem; }

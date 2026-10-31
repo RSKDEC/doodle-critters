@@ -49,6 +49,35 @@ function act(msg, done) {
   });
 }
 
+// ---------------- Chromecast ----------------
+
+let castNote = '';
+
+function castSlot() {
+  if (!castSender.available) return '';
+  return `<div class="card center castpanel">
+      <button class="big" data-cast="new">📺 Cast a new game to your TV</button>
+      <p class="muted" style="margin:0">${castNote || 'Puts the game on your Chromecast. No laptop needed!'}</p>
+    </div>`;
+}
+
+castSender.onChange = () => {
+  const slot = document.getElementById('castslot');
+  if (slot) slot.innerHTML = castSlot();
+  else if (state) render(true);
+};
+
+// The TV tells us its room code: pre-fill the join form.
+castSender.onRoom = (code) => {
+  if (state) return;
+  const input = document.getElementById('code');
+  if (!input) return;
+  input.value = code;
+  castNote = `✅ Game <b>${esc(code)}</b> is on your TV! Type your name and join.`;
+  document.getElementById('castslot').innerHTML = castSlot();
+  document.getElementById('name').focus();
+};
+
 // ---------------- join ----------------
 
 function renderJoin(msg = '') {
@@ -56,7 +85,7 @@ function renderJoin(msg = '') {
   const room = (params.get('room') || (s && s.code) || '').toUpperCase();
   screen = 'join';
   app.innerHTML = `
-    <h1 class="logo">${'Doodle Critters'.split('').map((ch, i) => (ch === ' ' ? ' ' : `<span style="color:${CRITTER_COLORS[i % 8]}">${ch}</span>`)).join('')}</h1>
+    <div class="join-head"><img src="/icon.svg" alt=""><h1 class="logo">${'Doodle Critters'.split('').map((ch, i) => (ch === ' ' ? ' ' : `<span style="color:${CRITTER_COLORS[i % 8]}">${ch}</span>`)).join('')}</h1></div>
     <form class="card" id="join">
       <label>Game code<input id="code" maxlength="4" autocapitalize="characters" autocomplete="off" value="${esc(room)}" placeholder="ABCD"></label>
       <label>Your name<input id="name" maxlength="12" autocomplete="off" value="${esc((s && s.name) || '')}" placeholder="Name"></label>
@@ -64,7 +93,8 @@ function renderJoin(msg = '') {
       <div class="ages">${[4, 5, 6, 7, 8].map((a) => `<button type="button" class="age ${joinAge === a ? 'on' : ''}" data-age="${a}">${a}</button>`).join('')}</div>
       <div class="err">${esc(msg)}</div>
       <button class="primary big" type="submit">Let's play! 🎨</button>
-    </form>`;
+    </form>
+    <div id="castslot">${castSlot()}</div>`;
   app.querySelectorAll('[data-age]').forEach((b) => b.addEventListener('click', () => {
     joinAge = Number(b.dataset.age);
     app.querySelectorAll('[data-age]').forEach((x) => x.classList.toggle('on', x === b));
@@ -86,6 +116,7 @@ function bar() {
   const p = meP();
   return `<div class="bar" style="--c:${CRITTER_COLORS[state.me.color]}">
     <span class="who">${p && p.critter ? critterSvg(p.critter, { feet: false }) : '<span class="blob"></span>'}<b>${esc(state.me.name)}</b></span>
+    ${castSender.available ? `<button class="castbtn ${castSender.connected ? 'on' : ''}" data-cast="room" aria-label="Show this game on the TV">📺 ${castSender.connected ? 'On TV' : 'Cast'}</button>` : ''}
     <span class="pts">${p ? p.stars : 0} ⭐</span>
   </div>`;
 }
@@ -447,7 +478,8 @@ app.addEventListener('click', async (e) => {
   const el = e.target.closest('button');
   if (!el || el.disabled) return;
   const d = el.dataset;
-  if (d.act) act({ type: d.act });
+  if (d.cast) castSender.show(d.cast === 'room' && state ? state.code : null);
+  else if (d.act) act({ type: d.act });
   else if (d.mic !== undefined) {
     el.disabled = true;
     el.textContent = 'Asking…';

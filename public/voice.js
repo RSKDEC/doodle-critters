@@ -12,9 +12,14 @@ const voice = (() => {
   }
   if (synth) synth.onvoiceschanged = () => { chosen = null; pick(); };
 
+  // The Android TV app's WebView has no speech; it lends us Android's own voice.
+  const android = typeof window !== 'undefined' && window.AndroidTTS;
+
   return {
     say(text) {
-      if (!enabled || !synth || !text) return;
+      if (!enabled || !text) return;
+      if (android) { try { android.speak(String(text)); } catch {} return; }
+      if (!synth) return;
       try {
         synth.cancel();
         const u = new SpeechSynthesisUtterance(text);
@@ -25,7 +30,12 @@ const voice = (() => {
         synth.speak(u);
       } catch {}
     },
-    stop() { try { synth && synth.cancel(); } catch {} },
+    stop() {
+      try {
+        if (android) android.stop();
+        else if (synth) synth.cancel();
+      } catch {}
+    },
     set enabled(on) { enabled = on; if (!on) this.stop(); },
     get enabled() { return enabled; },
   };

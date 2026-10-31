@@ -35,6 +35,28 @@ The microphone only works on `https://` pages or `localhost`, so deploy it (see 
 
 `render.yaml` is included: in Render, choose **New → Blueprint** and pick this repo. Free services sleep after about 15 minutes, so the first visit can take up to a minute to load.
 
+## Put it on the TV
+
+There are three ways to get the game onto the TV:
+
+- **Browser:** open `/host` on any screen, or cast that tab from Chrome on a laptop.
+- **Cast button (no laptop):** on an Android phone using Chrome, open `/play` and tap **📺 Cast a new game to your TV**. The Chromecast loads `/cast`, sends the room code back to the phone, and kids join as usual. A kid already in a game can tap **📺 Cast** in the top bar to move that game onto the TV. iPhones can join, but can't start the cast (Apple doesn't allow casting from websites).
+- **Android TV app:** an app on your Chromecast with Google TV, with its own tile in the Apps row (see below).
+
+### One-time Cast setup
+
+1. In the [Google Cast SDK Developer Console](https://cast.google.com/publish) (the same account as Smuggler, so there's no extra fee), choose **Add new application → Custom Receiver** and set the receiver URL to `https://doodle-critters.onrender.com/cast`.
+2. Copy the **Application ID** into `CAST_APP_ID` in `server.js`, or set it as a `CAST_APP_ID` environment variable in Render. Until it's set, the Cast button stays hidden.
+3. Your Chromecast is already registered as a test device on the account. If casting doesn't start, restart the Chromecast.
+
+### Android TV app
+
+`android-tv/` is a small Android TV app that opens `/tv` full-screen. It keeps the screen awake, plays sound without a click, and reads instructions aloud through Android's own voice (the app's built-in web viewer has no speech). GitHub Actions builds it whenever `android-tv/` changes and publishes the APK to **`/app`** (`/doodle-critters-tv.apk`).
+
+To install it on the Chromecast, use the same steps as Smuggler: developer mode on, install **Downloader**, allow it to install apps, then download `doodle-critters.onrender.com/app`. To update, download it again; the new version installs over the old one.
+
+The app is signed with a sideload-only key committed in the repo. Publishing to the Play Store would need a new private key.
+
 ## How it works
 
 ```
@@ -46,7 +68,12 @@ public/play.*        Phone controller: join, drawing pad, mic meter, flashlight 
 public/critter.js    Turns a drawing into a living critter (googly eyes, feet, animation)
 public/mic.js        Microphone → 0..1 "effort" above the room's background noise
 public/sound.js      Synthesized sound effects and an original music loop
-public/voice.js      Reads instructions aloud on the TV
+public/voice.js      Reads instructions aloud on the TV (Android TV app: via Android's voice)
+public/cast.js       Chromecast sender (phone's Cast button)
+public/cast.html     Chromecast receiver page (+ cast-receiver.js)
+public/tv.html       TV screen for the Android TV app
+public/icon.svg      App icon source; scripts/make-icons.js renders the PNGs and TV banner
+android-tv/          Android TV app (WebView wrapper), built by .github/workflows/android-tv.yml
 test/smoke.js        End-to-end test
 ```
 

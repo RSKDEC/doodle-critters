@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Doodle Critters · Chromecast</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="apple-mobile-web-app-title" content="Critters">
+  <link rel="stylesheet" href="/style.css">
+  <script src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+  <script>window.CRITTERS_CAST = true;</script>
+</head>
+<body class="tv-body">
+  <div id="app" class="tv">
+    <div class="cast-splash">
+      <img class="hero-icon" src="/icon.svg" alt="">
+      <div class="title" id="splash-logo">Doodle Critters</div>
+      <p>Connecting to your phone…</p>
+    </div>
+  </div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/common.js"></script>
+  <script src="/critter.js"></script>
+  <script src="/sound.js"></script>
+  <script src="/voice.js"></script>
+  <script src="/games/shared.js"></script>
+  <script src="/games/balloon.js"></script>
+  <script src="/games/dragon.js"></script>
+  <script src="/games/seek.js"></script>
+  <script src="/games/feather.js"></script>
+  <script src="/host.js"></script>
+  <script src="/cast-receiver.js"></script>
+</body>
+</html>

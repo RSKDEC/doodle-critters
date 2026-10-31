@@ -3,8 +3,11 @@ const app = document.getElementById('app');
 const clock = makeClock();
 const HOST_KEY = 'critters-host';
 // In the Android TV app or on a Chromecast there's no mouse: hide buttons, play sound right away.
-const NO_INPUT = !!(window.CRITTERS_TV || window.CRITTERS_CAST);
+const CAST = !!window.CRITTERS_CAST;
+const NO_INPUT = !!(window.CRITTERS_TV || CAST);
 if (NO_INPUT) document.body.classList.add('no-input');
+// On a Chromecast (cast.html) the TV waits for a phone to say which room to show.
+let castCode;
 
 let state = null;
 let qr = null;
@@ -19,17 +22,28 @@ const joinUrl = (code) => `${location.origin}/play?room=${code}`;
 
 function onRoom(res) {
   save(res.code);
+  if (window.onCrittersRoom) window.onCrittersRoom(res.code);
   socket.emit('host:qr', { url: joinUrl(res.code) }, (r) => {
     qr = r.dataUrl || null;
     render();
   });
 }
 
-socket.on('connect', () => {
-  const code = saved();
+function connectRoom() {
+  if (CAST && castCode === undefined) return;
+  const code = CAST ? castCode : saved();
   if (code) socket.emit('host:resume', { code }, (res) => (res.error ? socket.emit('host:create', null, onRoom) : onRoom(res)));
   else socket.emit('host:create', null, onRoom);
-});
+}
+socket.on('connect', connectRoom);
+
+// Called by cast-receiver.js: show this room, or a new one when code is null.
+window.crittersShow = (code) => {
+  if (code && state && state.code === code) return window.onCrittersRoom && window.onCrittersRoom(code);
+  castCode = code || null;
+  if (code) save(code);
+  if (socket.connected) connectRoom();
+};
 
 socket.on('host:state', (s) => {
   const prev = state;

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    html, body { margin: 0; height: 100%; }
+    body {
+      display: grid; place-content: center; text-align: center; gap: 3vh;
+      font-family: sans-serif; color: #26314f;
+      background: linear-gradient(180deg, #8fd3ff, #dff4ff 70%, #eafbe6);
+    }
+    img { width: 16vw; height: 16vw; margin: 0 auto; border-radius: 3.6vw; box-shadow: 0 2vh 4vh rgba(38,49,79,.25); animation: bob 2.4s ease-in-out infinite; }
+    h1 { margin: 0; font-size: 6vw; font-weight: 900; text-shadow: 0 .5vw 0 rgba(38,49,79,.15); }
+    p { margin: 0; font-size: 2.2vw; color: #5d6b8f; font-weight: bold; animation: pulse 1.6s infinite; }
+    @keyframes bob { 50% { transform: translateY(-5%) rotate(3deg); } }
+    @keyframes pulse { 50% { opacity: .5; } }
+  </style>
+</head>
+<body>
+  <img src="icon.png" alt="">
+  <h1 id="title">Doodle Critters</h1>
+  <p id="msg">Waking up the critters…</p>
+  <script>
+    const colors = ['#ff5d5d', '#ff9f1c', '#f7c600', '#3bb273', '#2f80ed', '#9b5de5', '#ff6fb5', '#20c4cb'];
+    document.getElementById('title').innerHTML = 'Doodle Critters'.split('').map((ch, i) =>
+      ch === ' ' ? ' ' : `<span style="color:${colors[i % 8]}">${ch}</span>`).join('');
+    const q = new URLSearchParams(location.search);
+    const url = q.get('url');
+    if (q.get('error')) {
+      document.getElementById('msg').textContent = "Can't reach the game. Trying again…";
+      setTimeout(() => location.replace(url), 5000);
+    } else {
+      // The free server can take up to a minute to wake; this screen stays until it answers.
+      location.replace(url);
+    }
+  </script>
+</body>
+</html>
