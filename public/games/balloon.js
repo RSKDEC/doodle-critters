@@ -18,13 +18,17 @@ Games.balloon = (ctx) => {
   });
 
   const laneW = Math.min(22, 92 / n);
-  ctx.stage.innerHTML = `<div class="scene sky balloon-scene">
+  const hw = ctx.theme === 'halloween';
+  const face = hw ? `<svg class="b-face" viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M26 40 L36 26 L46 40Z M54 40 L64 26 L74 40Z" fill="#5a2a00"/>
+      <path d="M24 56 Q50 84 76 56 Q50 66 24 56Z" fill="#5a2a00"/></svg>` : '';
+  ctx.stage.innerHTML = `<div class="scene ${hw ? 'nightsky' : 'sky'} balloon-scene">
     <div class="cloud c1"></div><div class="cloud c2"></div>
     ${lanes.map((l, i) => `
       <div class="b-lane" id="bl${i}" style="left:${l.left}%;width:${laneW}%">
         <div class="b-danger" style="top:${BOTTOM - MAX_D}%"></div>
         <div class="b-band" style="top:${BOTTOM - l.band[1] * MAX_D}%;height:${(l.band[1] - l.band[0]) * MAX_D}%"></div>
-        <div class="b-balloon" style="--c:${critterColor(l.p)}"><i></i></div>
+        <div class="b-balloon ${hw ? 'pumpkin-balloon' : ''}" style="--c:${hw ? '#ff8a1c' : critterColor(l.p)}"><i></i>${face}</div>
         <div class="b-string" style="top:${BOTTOM}%"></div>
         <div class="b-burst">POP!</div>
         <div class="b-done">⭐ Perfect!</div>

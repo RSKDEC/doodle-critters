@@ -25,11 +25,21 @@ function strokePoints(p) {
   return out;
 }
 
-// opts: { cls, feet (default true), mood: 'happy' | 'dizzy' }
+// opts: { cls, feet (default true), mood: 'happy' | 'dizzy', costume: index into COSTUMES }
 function critterSvg(c, opts = {}) {
   if (!c) return '';
   const { cls = '', feet = true, mood } = opts;
+  const costume = opts.costume ?? c.costume;
   const b = critterBox(c);
+  let hat = '';
+  if (costume != null && typeof COSTUMES !== 'undefined') {
+    const k = COSTUMES[costume % COSTUMES.length];
+    const hw = Math.min(Math.max(b.x1 - b.x0, 40) * 0.75, 130);
+    const base = b.y0 + hw * 0.14;
+    const cxh = b.x0 + (b.x1 - b.x0) / 2;
+    hat = `<g class="costume" transform="translate(${cxh} ${base}) scale(${hw / 100})">${k.svg}</g>`;
+    b.y0 = Math.min(b.y0, base - hw * k.h);
+  }
   const w = Math.max(40, b.x1 - b.x0);
   const h = Math.max(40, b.y1 - b.y0);
   const side = Math.max(w, h) + 24;
@@ -54,5 +64,5 @@ function critterSvg(c, opts = {}) {
       <ellipse class="foot r" cx="${cx + w * 0.2}" cy="${by + footH * 0.45}" rx="${fw / 2}" ry="${footH * 0.38}" fill="#3a2f2a"/>
     </g>` : '';
   return `<svg class="critter ${cls}" viewBox="${vx} ${vy} ${side} ${side + footH}" aria-hidden="true">
-    ${feetSvg}<g class="body">${lines}${eyes}</g></svg>`;
+    ${feetSvg}<g class="body">${lines}${eyes}${hat}</g></svg>`;
 }

@@ -11,6 +11,16 @@ A party game for kids aged 4–8. The game runs on the TV, and kids play on phon
    - 🪶 **Feather Float:** blow softly to keep your feather in the cloud zone.
 4. **Parade:** every critter marches with its own medal (Balloon Boss, Dragon Dodger, Super Seeker…), and the team counts up its stars.
 
+## 🎃 Halloween theme
+
+A cozy, never-scary Halloween look that turns on by itself in October. The leader (👑) can switch between **☀️ Sunny** and **🎃 Halloween** on their phone in the lobby; the TV has the same toggle when it's run from a laptop.
+
+- **Decorations:** a night sky with a friendly moon, twinkling stars, smiling ghosts floating by, little bats, and grinning pumpkins.
+- **Costumes:** every drawn critter gets a costume (witch hat, pumpkin cap, cat ears or wizard hat) on every screen.
+- **Halloween games:** 🎃 Pumpkin Balloons (jack-o'-lantern balloons), 🐉 the dragon wears a witch hat at sunset, 🔦 the bedroom has string lights, paper bats and a pumpkin, and 👻 Ghost Float replaces the feather.
+- **Candy instead of stars:** kids collect 🍬 and win awards like *Pumpkin Pro* and *Ghost Whisperer*.
+- **Sound:** a tiptoeing, playful tune and Halloween voice lines ("Happy Halloween, Mia!").
+
 ## Made for little kids
 
 - **No reading needed.** The TV reads every instruction out loud (using the browser's speech), and phones show big pictures and buttons.
@@ -69,6 +79,7 @@ public/critter.js    Turns a drawing into a living critter (googly eyes, feet, a
 public/mic.js        Microphone → 0..1 "effort" above the room's background noise
 public/sound.js      Synthesized sound effects and an original music loop
 public/voice.js      Reads instructions aloud on the TV (Android TV app: via Android's voice)
+public/halloween.js  Halloween art: ghost, pumpkins, bats, decorations, critter costumes
 public/cast.js       Chromecast sender (phone's Cast button)
 public/cast.html     Chromecast receiver page (+ cast-receiver.js)
 public/tv.html       TV screen for the Android TV app

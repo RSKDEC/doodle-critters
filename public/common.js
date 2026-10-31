@@ -26,6 +26,41 @@ const GAME_INFO = {
   },
 };
 
+const HALLOWEEN_INFO = {
+  balloon: {
+    title: 'Pumpkin Balloons', emoji: '🎃',
+    how: 'Blow into your phone to fill your pumpkin balloon. Stop at the green line, before it goes POP!',
+    phone: 'Blow gently! Stop at the line!',
+  },
+  dragon: {
+    title: 'Shh! The Sleepy Dragon', emoji: '🐉',
+    how: 'The dragon dressed up as a witch! Make noise to run to the castle. When it falls asleep, be super quiet, or it will blow you back!',
+    phone: 'Make noise to run! Be quiet when the dragon sleeps!',
+  },
+  seek: {
+    title: 'Halloween Hide and Seek', emoji: '🔦',
+    how: 'One critter hides in the Halloween bedroom. Everyone else, slide your finger to move your flashlight and find it!',
+    phone: 'Slide your finger to move your flashlight!',
+  },
+  feather: {
+    title: 'Ghost Float', emoji: '👻',
+    how: 'Blow softly to keep your little ghost floating in the moonlight. Not too hard, not too soft!',
+    phone: 'Blow softly! Keep your ghost in the moonlight!',
+  },
+};
+
+// Called whenever a new state arrives: theme the page and dress up critters.
+function applyTheme(state) {
+  document.body.dataset.theme = state.theme;
+  if (state.theme !== 'halloween') return;
+  for (const p of state.players) if (p.critter) p.critter.costume = p.color;
+}
+
+const gameInfo = (game, theme) => (theme === 'halloween' ? HALLOWEEN_INFO : GAME_INFO)[game];
+// In the Halloween theme kids collect candy instead of stars.
+const prize = (theme) => (theme === 'halloween' ? '🍬' : '⭐');
+const prizeWord = (theme, n) => (theme === 'halloween' ? (n === 1 ? 'candy' : 'candies') : (n === 1 ? 'star' : 'stars'));
+
 // Server sends `now` with each state so countdowns survive clock drift between devices.
 function makeClock() {
   let offset = 0;
@@ -80,7 +115,15 @@ const AWARDS = {
   feather: ['🪶', 'Feather Floater'],
 };
 
-function awardFor(p) {
+const HALLOWEEN_AWARDS = {
+  balloon: ['🎃', 'Pumpkin Pro'],
+  dragon: ['🐉', 'Dragon Tiptoer'],
+  seek: ['🔦', 'Spooky Seeker'],
+  feather: ['👻', 'Ghost Whisperer'],
+};
+
+function awardFor(p, theme) {
   const best = Object.entries(p.gameStars || {}).sort((a, b) => b[1] - a[1])[0];
-  return best ? AWARDS[best[0]] : ['🎨', 'Super Doodler'];
+  if (!best) return theme === 'halloween' ? ['🍬', 'Candy Collector'] : ['🎨', 'Super Doodler'];
+  return (theme === 'halloween' ? HALLOWEEN_AWARDS : AWARDS)[best[0]];
 }

@@ -291,3 +291,82 @@ input:focus { outline: none; border-color: var(--pink); }
 .phone .join-head { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .phone .join-head img { width: 54px; height: 54px; border-radius: 13px; box-shadow: 0 4px 12px rgba(38,49,79,.25); }
 .phone .join-head .logo { font-size: 2.2rem; }
+
+/* ---------- theme picker (leader's phone) ---------- */
+.themes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+.themes button { padding: 12px 6px; font-size: 1.1rem; }
+.themes button.on { background: var(--sun); }
+
+/* ---------- 🎃 Halloween theme: cozy and cute, never scary ---------- */
+.hw-deco { display: none; }
+[data-theme="halloween"] {
+  --sun: #ff9a1f;
+  --night1: #1d1240;
+  --night2: #4b2a86;
+  --glow: #fff3d6;
+  --soft: #d9c9ff;
+  color: var(--glow);
+  background: radial-gradient(1200px 700px at 80% -10%, #6b3fb5 0%, transparent 60%), linear-gradient(180deg, var(--night1), var(--night2) 70%, #6a3a8f);
+  background-attachment: fixed;
+}
+[data-theme="halloween"] #app { position: relative; z-index: 1; }
+[data-theme="halloween"] :is(.card, .joinbox, .kid, .result, .award, .bar, .chip, .games-preview span, .lane-name, .d-banner, .s-banner, .b-done, button) { color: var(--ink); }
+[data-theme="halloween"] :is(.card, .joinbox, .award, .result) .muted { color: var(--muted); }
+[data-theme="halloween"] :is(.sub, .tagline, .tv-top .info, .look, .team-total) { color: var(--soft); }
+/* Ghosts drift behind the text, so give light text a soft shadow to stay readable. */
+[data-theme="halloween"] :is(.sub, .tagline, .tv-top .info, .team-total, .how, .tv h1) { text-shadow: 0 .2vw .8vw rgba(20,10,50,.85); }
+[data-theme="halloween"] .muted { color: var(--soft); }
+[data-theme="halloween"] .kids { background: rgba(255,255,255,.1); }
+[data-theme="halloween"] button.ghost { background: rgba(255,255,255,.16); color: var(--glow); }
+[data-theme="halloween"] .fuse { background: rgba(255,255,255,.18); }
+[data-theme="halloween"] .fuse-bar { background: linear-gradient(90deg, #b07cff, var(--sun)); }
+[data-theme="halloween"] .star.on { color: #ff9a1f; text-shadow: 0 3px 0 #b85a00; }
+[data-theme="halloween"] .ground { background: #2f6b3c; }
+[data-theme="halloween"] .joinbox .code { color: #ff8a1c; }
+[data-theme="halloween"] .lobby .title, [data-theme="halloween"] .tv h1 { text-shadow: 0 .4vw 0 rgba(0,0,0,.35); }
+[data-theme="halloween"] .timer { color: var(--glow); }
+[data-theme="halloween"] .tv { padding-bottom: 8vh; }
+
+/* decorations behind the TV screens */
+[data-theme="halloween"] .hw-deco { display: block; position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.hw-deco .moon { position: absolute; top: 20vh; right: 1.5vw; width: 6.5vw; height: 6.5vw; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fffbe8, #ffe9a8); box-shadow: 0 0 4vw rgba(255,240,180,.55); }
+.hw-deco .moon::after { content: ''; position: absolute; width: 1.6vw; height: 1.6vw; border-radius: 50%; background: rgba(230,200,120,.4); top: 30%; left: 55%; box-shadow: -3vw 2.5vw 0 .3vw rgba(230,200,120,.3); }
+.hw-deco .twinkle { position: absolute; width: .45vw; height: .45vw; border-radius: 50%; background: #fff; animation: pulse 2.4s ease-in-out infinite; }
+.float-ghost { position: absolute; width: 6vw; opacity: .8; animation: ghostDrift 26s linear infinite; }
+.float-ghost .ghost { width: 100%; animation: bounce 2.6s ease-in-out infinite; }
+.float-ghost.g1 { top: 18vh; }
+.float-ghost.g2 { top: 52vh; width: 4.5vw; animation-duration: 34s; animation-delay: -14s; opacity: .55; }
+@keyframes ghostDrift { from { transform: translateX(-10vw); } to { transform: translateX(110vw); } }
+.flap-bat { position: absolute; width: 6vw; animation: batFly 18s linear infinite; }
+.flap-bat.b1 { top: 10vh; }
+.flap-bat.b2 { top: 30vh; width: 4.5vw; animation-duration: 23s; animation-delay: -9s; }
+.flap-bat .wing { transform-box: fill-box; transform-origin: center; animation: flap .35s ease-in-out infinite alternate; }
+.flap-bat .wing.l { transform-origin: right center; }
+.flap-bat .wing.r { transform-origin: left center; }
+@keyframes flap { from { transform: scaleY(1); } to { transform: scaleY(.35); } }
+@keyframes batFly { 0% { transform: translate(110vw, 0); } 50% { transform: translate(40vw, 6vh); } 100% { transform: translate(-15vw, -2vh); } }
+.pumpkin-row { position: absolute; left: 1vw; right: 1vw; bottom: -1.5vh; display: flex; justify-content: space-between; }
+.pumpkin-row .pumpkin { width: 4.6vw; animation: wobbleP 3s ease-in-out infinite; transform-origin: 50% 100%; }
+.pumpkin-row .pumpkin.p1, .pumpkin-row .pumpkin.p3 { width: 3.6vw; animation-delay: -1s; }
+@keyframes wobbleP { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+
+/* game scenes */
+.nightsky { background: linear-gradient(180deg, #1d1240, #4b2a86 75%, #6a3a8f); }
+.nightsky::before { content: ''; position: absolute; top: 6%; right: 6%; width: 7vw; height: 7vw; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fffbe8, #ffe9a8); box-shadow: 0 0 3vw rgba(255,240,180,.5); }
+.nightsky::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image: radial-gradient(2px 2px at 10% 20%, #fff 60%, transparent), radial-gradient(2px 2px at 30% 8%, #fff 60%, transparent), radial-gradient(2px 2px at 55% 15%, #fff 60%, transparent), radial-gradient(2px 2px at 75% 30%, #fff 60%, transparent), radial-gradient(2px 2px at 20% 45%, #fff 60%, transparent), radial-gradient(2px 2px at 88% 50%, #fff 60%, transparent); }
+.nightsky .cloud { opacity: .25; }
+.pumpkin-balloon { border-radius: 46% 46% 44% 44% / 52% 52% 48% 48%; }
+.pumpkin-balloon::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: repeating-linear-gradient(90deg, transparent 0 22%, rgba(200,90,0,.35) 22% 25%); }
+.b-face { position: absolute; left: 15%; right: 15%; top: 22%; bottom: 18%; }
+.f-feather.is-ghost { width: 6vw; transform-origin: center; }
+.f-feather.is-ghost .ghost { width: 100%; display: block; }
+.nightsky .f-zone { background: rgba(255,240,180,.18); box-shadow: 0 0 2.5vw rgba(255,240,180,.35); }
+.nightsky .in-zone .f-zone { background: rgba(255,240,180,.45); box-shadow: 0 0 3vw rgba(255,240,180,.8); }
+.nightsky .f-meter { background: rgba(255,255,255,.2); }
+.dragon-scene.dusk { background: linear-gradient(180deg, #3b2a6b 0%, #a0577a 28%, #f29e6d 45%, #3f8f4f 45%, #2d6e3c 100%); }
+.dusk .sun { background: radial-gradient(circle at 35% 35%, #fffbe8, #ffe9a8); box-shadow: 0 0 3vw rgba(255,240,180,.6); }
+.dusk .hill { background: #3f8f4f; }
+.dusk .cloud { opacity: .35; }
+.track-pumpkins { position: absolute; left: 4%; right: 30%; bottom: -1.5%; display: flex; justify-content: space-around; z-index: 1; opacity: .9; }
+.track-pumpkins .pumpkin { width: 3vw; }

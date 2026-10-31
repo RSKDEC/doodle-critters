@@ -45,8 +45,13 @@ window.crittersShow = (code) => {
   if (socket.connected) connectRoom();
 };
 
+// Halloween decorations live behind everything; CSS shows them only in that theme.
+document.body.insertAdjacentHTML('afterbegin', halloweenDeco());
+
 socket.on('host:state', (s) => {
   const prev = state;
+  applyTheme(s);
+  sound.setTheme(s.theme);
   state = s;
   clock.sync(s);
   cues(prev, s);
@@ -104,7 +109,8 @@ function cues(prev, s) {
   }
   if (s.phase === 'lobby' && prev) {
     const fresh = s.players.filter((p) => !prev.players.some((q) => q.key === p.key));
-    fresh.forEach((p) => { sound.play('pop'); voice.say(`Hi ${p.name}!`); });
+    const hw = s.theme === 'halloween';
+    fresh.forEach((p) => { sound.play('pop'); voice.say(hw ? `Happy Halloween, ${p.name}!` : `Hi ${p.name}!`); });
   }
   if (s.phase === 'draw' && prev && prev.phase === 'draw') {
     const drawn = (st) => st.players.filter((p) => p.drawn).length;
@@ -115,18 +121,20 @@ function cues(prev, s) {
   switch (s.phase) {
     case 'draw':
       sound.play('whoosh');
-      voice.say('Time to draw your critter! Draw it on your phone, and give it googly eyes!');
+      voice.say(s.theme === 'halloween'
+        ? 'Time to draw your critter! It is Halloween, so your critter will get a costume!'
+        : 'Time to draw your critter! Draw it on your phone, and give it googly eyes!');
       break;
     case 'meet':
       sound.play('sparkle');
-      voice.say('Look! Your critters are coming to life!');
+      voice.say(s.theme === 'halloween' ? 'Look! Your critters are dressed up for Halloween!' : 'Look! Your critters are coming to life!');
       s.players.forEach((p, i) => later(2200 + i * 3400, () => {
         sound.play('hello');
         voice.say(`Say hi to ${p.name}'s critter!`);
       }));
       break;
     case 'intro': {
-      const info = GAME_INFO[s.game];
+      const info = gameInfo(s.game, s.theme);
       sound.play('sparkle');
       later(400, () => voice.say(`${info.title}! ${info.how}`));
       break;
@@ -141,7 +149,9 @@ function cues(prev, s) {
       break;
     case 'parade':
       sound.play('fanfare');
-      later(1200, () => voice.say('Hooray! Time for a parade of all our amazing critters!'));
+      later(1200, () => voice.say(s.theme === 'halloween'
+        ? 'Happy Halloween! Time for a costume parade! Look at all that candy!'
+        : 'Hooray! Time for a parade of all our amazing critters!'));
       break;
   }
 }
@@ -154,6 +164,7 @@ function gameCtx(stage) {
   return {
     stage,
     players: state.players.filter((p) => p.critter),
+    theme: state.theme,
     seconds: state.gameSeconds,
     sound,
     voice,
@@ -193,7 +204,7 @@ function renderPlay() {
     return;
   }
   stopGame();
-  const info = GAME_INFO[state.game];
+  const info = gameInfo(state.game, state.theme);
   app.innerHTML = `
     <div class="tv-top">
       <div class="logo small">${logo()}</div>
@@ -242,7 +253,7 @@ function lobby() {
   return `
     <div class="lobby">
       <div class="title">${logo()}</div>
-      <p class="tagline">Draw a critter on your phone and watch it come alive!</p>
+      <p class="tagline">${state.theme === 'halloween' ? '🎃 Happy Halloween! Draw a critter and dress it up!' : 'Draw a critter on your phone and watch it come alive!'}</p>
       <div class="lobby-grid">
         <div class="joinbox">
           <div class="muted">Join on a phone</div>
@@ -258,9 +269,10 @@ function lobby() {
       </div>
       <div class="tv-actions">
         <button data-act="start" class="primary" ${state.players.length ? '' : 'disabled'}>Start! 🎨</button>
+        <button data-act="toggleTheme" class="ghost">${state.theme === 'halloween' ? '☀️ Sunny theme' : '🎃 Halloween theme'}</button>
         <button data-act="newRoom" class="ghost">New room</button>
       </div>
-      <p class="sub">👑 The first player can press Start on their phone.</p>
+      <p class="sub">👑 The first player can press Start (and pick the theme) on their phone.</p>
     </div>`;
 }
 
@@ -293,7 +305,7 @@ function meetScreen() {
 }
 
 function introScreen() {
-  const info = GAME_INFO[state.game];
+  const info = gameInfo(state.game, state.theme);
   return `
     ${header()}
     <div class="center-screen intro">
@@ -306,7 +318,7 @@ function introScreen() {
 }
 
 function resultsScreen() {
-  const info = GAME_INFO[state.results.game];
+  const info = gameInfo(state.results.game, state.theme);
   return `
     ${header()}
     <div class="center-screen results">
@@ -326,16 +338,16 @@ function paradeScreen() {
   return `
     ${header('🎉 Parade!')}
     <div class="parade">
-      <h1>Hooray for our critters!</h1>
-      <p class="team-total">Together you collected <b>${total}</b> ⭐!</p>
+      <h1>${state.theme === 'halloween' ? 'Happy Halloween, critters!' : 'Hooray for our critters!'}</h1>
+      <p class="team-total">Together you collected <b>${total}</b> ${prize(state.theme)}!</p>
       <div class="award-grid">${state.players.map((p, i) => {
-        const [emoji, title] = awardFor(p);
+        const [emoji, title] = awardFor(p, state.theme);
         return `<div class="award" style="animation-delay:${0.3 + i * 0.2}s">
           <div class="medal">🏅</div>
           ${critterSvg(p.critter, { cls: 'alive' })}
           <b>${esc(p.name)}</b>
           <div class="award-title">${emoji} ${title}</div>
-          <div class="muted">${p.stars} ⭐</div>
+          <div class="muted">${p.stars} ${prize(state.theme)}</div>
         </div>`;
       }).join('')}</div>
       <div class="marching">${state.players.concat(state.players).map((p) => critterSvg(p.critter, { cls: 'alive walking' })).join('')}</div>

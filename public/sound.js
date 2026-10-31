@@ -91,19 +91,31 @@ const sound = (() => {
     found: () => { sfx.sparkle(); tone({ freq: 784, slide: 1568, dur: 0.3, vol: 0.2, type: 'triangle', at: 0.2 }); },
   };
 
-  // Original bouncy loop in C major: plucky bass and a little melody.
-  const BASS = [130.8, 0, 196, 0, 174.6, 0, 196, 0, 130.8, 0, 196, 0, 220, 0, 196, 0];
-  const MELODY = [523, 0, 659, 784, 0, 659, 587, 0, 523, 587, 659, 0, 784, 0, 659, 0];
+  // Original loops. Sunny: bouncy C major. Halloween: a tiptoeing A minor
+  // with a wobbly "ooo" ghost slide every few bars — playful, not scary.
+  const TUNES = {
+    sunny: {
+      bass: [130.8, 0, 196, 0, 174.6, 0, 196, 0, 130.8, 0, 196, 0, 220, 0, 196, 0],
+      melody: [523, 0, 659, 784, 0, 659, 587, 0, 523, 587, 659, 0, 784, 0, 659, 0],
+    },
+    halloween: {
+      bass: [110, 0, 164.8, 0, 130.8, 0, 164.8, 0, 110, 0, 164.8, 0, 146.8, 0, 123.5, 0],
+      melody: [440, 0, 523, 0, 494, 466, 440, 0, 392, 0, 440, 523, 659, 0, 622, 0],
+      ghost: true,
+    },
+  };
+  let tune = TUNES.sunny;
   const STEP = 0.2;
 
   function schedule() {
     if (!ready()) return;
     while (nextBeat < ctx.currentTime + 0.4) {
       const at = nextBeat - ctx.currentTime;
-      const b = BASS[beat % BASS.length];
-      const m = MELODY[beat % MELODY.length];
+      const b = tune.bass[beat % tune.bass.length];
+      const m = tune.melody[beat % tune.melody.length];
       if (b) tone({ freq: b, type: 'triangle', dur: STEP * 0.9, vol: 0.5, at, dest: musicGain });
       if (m && Math.floor(beat / 16) % 2 === 1) tone({ freq: m, type: 'sine', dur: STEP * 0.8, vol: 0.25, at, dest: musicGain });
+      if (tune.ghost && beat % 64 === 48) tone({ freq: 523, slide: 330, dur: 1.6, vol: 0.12, type: 'sine', at, dest: musicGain });
       nextBeat += STEP;
       beat++;
     }
@@ -131,6 +143,7 @@ const sound = (() => {
   }
 
   return {
+    setTheme(theme) { tune = TUNES[theme] || TUNES.sunny; },
     unlock,
     ready,
     music,

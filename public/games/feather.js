@@ -16,11 +16,12 @@ Games.feather = (ctx) => {
   const laneW = Math.min(22, 92 / n);
   const yPct = (y) => TOP + (1 - y) * SPAN;
 
-  ctx.stage.innerHTML = `<div class="scene sky feather-scene">
+  const hw = ctx.theme === 'halloween';
+  ctx.stage.innerHTML = `<div class="scene ${hw ? 'nightsky' : 'sky'} feather-scene">
     ${lanes.map((l, i) => `
       <div class="f-lane" id="fl${i}" style="left:${l.left}%;width:${laneW}%">
         <div class="f-zone" style="top:${yPct(l.zone[1])}%;height:${(l.zone[1] - l.zone[0]) * SPAN}%"></div>
-        <div class="f-feather">🪶</div>
+        <div class="f-feather ${hw ? 'is-ghost' : ''}">${hw ? ghostSvg() : '🪶'}</div>
         <div class="f-meter"><i></i></div>
         <div class="f-critter">${critterSvg(l.p.critter, { cls: 'alive' })}</div>
         <div class="lane-name">${esc(l.p.name)}</div>

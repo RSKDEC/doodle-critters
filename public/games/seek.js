@@ -4,7 +4,7 @@
 
 Games.seek = (ctx) => {
   ctx.stage.innerHTML = `<div class="scene seek-scene">
-    ${bedroomSvg()}
+    ${bedroomSvg(ctx.theme === 'halloween')}
     <div class="s-hidden"></div>
     <canvas class="s-dark"></canvas>
     <div class="s-banner"></div>
@@ -128,7 +128,17 @@ Games.seek = (ctx) => {
 };
 
 // An original cozy bedroom, 1600x900, matching SEEK_SPOTS.
-function bedroomSvg() {
+function bedroomSvg(halloween = false) {
+  const lights = Array.from({ length: 22 }, (_, i) => {
+    const x = 40 + i * 72;
+    const y = 58 + Math.sin(i * 0.9) * 10 + (i % 2) * 6;
+    return `<circle cx="${x}" cy="${y}" r="11" fill="${i % 2 ? '#b07cff' : '#ff9a1f'}"/><circle cx="${x - 3}" cy="${y - 3}" r="3" fill="#fff" opacity=".7"/>`;
+  }).join('');
+  const deco = halloween ? `
+    <path d="M0 50 Q400 80 800 52 T1600 56" fill="none" stroke="#3a2f2a" stroke-width="4"/>${lights}
+    <svg x="250" y="170" width="140" height="70" viewBox="0 0 120 60">${batSvg().replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>
+    <svg x="1000" y="240" width="110" height="55" viewBox="0 0 120 60">${batSvg().replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>
+    <svg x="1190" y="660" width="120" height="120" viewBox="0 0 100 100">${pumpkinSvg('', 0).replace(/^<svg[^>]*>|<\/svg>$/g, '')}</svg>` : '';
   return `<svg class="bedroom" viewBox="0 0 1600 900" preserveAspectRatio="none" aria-hidden="true">
     <rect width="1600" height="620" fill="#f6d9b8"/>
     <path d="M0 0 H1600 V40 H0Z" fill="#e8c59d"/>
@@ -175,5 +185,6 @@ function bedroomSvg() {
     <path d="M30 720 H220 L200 880 H50Z" fill="#e9c46a" stroke="#b08a2e" stroke-width="7"/>
     ${[0, 1, 2, 3].map((i) => `<path d="M40 ${750 + i * 32} H210" stroke="#b08a2e" stroke-width="5"/>`).join('')}
     <path d="M60 720 q40 -50 90 -10 q30 -30 60 10Z" fill="#74c0fc"/>
+    ${deco}
   </svg>`;
 }

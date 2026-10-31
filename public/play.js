@@ -30,6 +30,7 @@ socket.on('connect', () => {
 socket.on('player:state', (s) => {
   if (!s) return;
   const prevPhase = state && state.phase;
+  applyTheme(s);
   state = s;
   clock.sync(s);
   if (prevPhase !== s.phase && ['draw', 'intro', 'play'].includes(s.phase)) buzz(150);
@@ -117,7 +118,7 @@ function bar() {
   return `<div class="bar" style="--c:${CRITTER_COLORS[state.me.color]}">
     <span class="who">${p && p.critter ? critterSvg(p.critter, { feet: false }) : '<span class="blob"></span>'}<b>${esc(state.me.name)}</b></span>
     ${castSender.available ? `<button class="castbtn ${castSender.connected ? 'on' : ''}" data-cast="room" aria-label="Show this game on the TV">📺 ${castSender.connected ? 'On TV' : 'Cast'}</button>` : ''}
-    <span class="pts">${p ? p.stars : 0} ⭐</span>
+    <span class="pts">${p ? p.stars : 0} ${prize(state.theme)}</span>
   </div>`;
 }
 
@@ -148,7 +149,7 @@ const lookAtTv = (text = 'Look at the TV! 📺') => `<p class="look">${text}</p>
 function lobbyScreen() {
   return `${bar()}
     <div class="card center">
-      <h2>Hi ${esc(state.me.name)}! 👋</h2>
+      <h2>${state.theme === 'halloween' ? '🎃 Happy Halloween' : 'Hi'} ${esc(state.me.name)}! 👋</h2>
       <p class="muted">You're in the game!</p>
     </div>
     ${micCard()}
@@ -158,7 +159,12 @@ function lobbyScreen() {
 function lobbyLive() {
   return `<div class="card"><div class="roster">${state.players.map((p) => `<span class="chip" style="--c:${CRITTER_COLORS[p.color]}"><span class="blob"></span>${esc(p.name)}</span>`).join('')}</div></div>
     ${state.me.vip
-      ? '<button class="primary big" data-act="start">Start! 🎨</button><p class="center muted">👑 You\'re the leader. Press start when everyone is in!</p>'
+      ? `<div class="card center"><div class="label">👑 Pick a theme</div>
+          <div class="themes">
+            <button class="${state.theme === 'sunny' ? 'on' : ''}" data-theme-pick="sunny">☀️ Sunny</button>
+            <button class="${state.theme === 'halloween' ? 'on' : ''}" data-theme-pick="halloween">🎃 Halloween</button>
+          </div></div>
+        <button class="primary big" data-act="start">Start! 🎨</button><p class="center muted">👑 You're the leader. Press start when everyone is in!</p>`
       : '<p class="center muted">Waiting for 👑 the leader to press start…</p>'}`;
 }
 
@@ -301,7 +307,7 @@ function meetScreen() {
 }
 
 function introScreen() {
-  const info = GAME_INFO[state.game];
+  const info = gameInfo(state.game, state.theme);
   return `${bar()}
     <div class="card center">
       <div class="big-emoji">${info.emoji}</div>
@@ -313,7 +319,7 @@ function introScreen() {
 }
 
 function micGameScreen() {
-  const info = GAME_INFO[state.game];
+  const info = gameInfo(state.game, state.theme);
   return `${bar()}
     <div class="card center play">
       <div class="big-emoji">${info.emoji}</div>
@@ -361,7 +367,7 @@ function seekScreen() {
 
 function resultsScreen() {
   const n = state.results.stars[state.me.key] || 1;
-  const info = GAME_INFO[state.results.game];
+  const info = gameInfo(state.results.game, state.theme);
   return `${bar()}
     <div class="card center">
       <div class="big-emoji">${info.emoji}</div>
@@ -372,13 +378,13 @@ function resultsScreen() {
 
 function paradeScreen() {
   const p = meP();
-  const [emoji, title] = awardFor(p || {});
+  const [emoji, title] = awardFor(p || {}, state.theme);
   return `${bar()}
     <div class="card center">
       <div class="big-emoji">🏅</div>
       <h2>You're a ${title}!</h2>
       <div class="preview">${critterSvg(p && p.critter, { cls: 'alive' })}</div>
-      <p class="how">${emoji} ${p ? p.stars : 0} stars!</p>
+      <p class="how">${emoji} ${p ? p.stars : 0} ${prizeWord(state.theme, p ? p.stars : 0)}!</p>
     </div>
     ${state.me.vip ? '<button class="primary big" data-act="playAgain">Play again! 🎨</button>' : lookAtTv()}`;
 }
@@ -386,7 +392,7 @@ function paradeScreen() {
 function screenKey(s) {
   const p = s.players.find((x) => x.key === s.me.key);
   switch (s.phase) {
-    case 'lobby': return `lobby:${mic.ok}`;
+    case 'lobby': return `lobby:${mic.ok}:${s.theme}`;
     case 'draw': return `draw:${p && p.drawn ? 'done' : 'pad'}`;
     case 'play':
       if (s.game === 'seek') return `seek:${s.seek.round}:${s.seek.stage}:${s.seek.finder}`;
@@ -479,6 +485,7 @@ app.addEventListener('click', async (e) => {
   if (!el || el.disabled) return;
   const d = el.dataset;
   if (d.cast) castSender.show(d.cast === 'room' && state ? state.code : null);
+  else if (d.themePick) act({ type: 'theme', theme: d.themePick });
   else if (d.act) act({ type: d.act });
   else if (d.mic !== undefined) {
     el.disabled = true;

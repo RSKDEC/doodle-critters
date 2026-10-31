@@ -22,6 +22,10 @@ const SECONDS = {
 // Drawing limits (canvas is 300x300 on the phone).
 const DRAW = { size: 300, maxStrokes: 300, maxPoints: 9000, palette: 8, widths: 3, maxEyes: 6 };
 
+const THEMES = ['sunny', 'halloween'];
+// Halloween decorations come out on their own in October.
+const defaultTheme = (d = new Date()) => (d.getMonth() === 9 ? 'halloween' : 'sunny');
+
 const norm = (s) => String(s || '').trim().toLowerCase();
 
 function shuffle(arr) {
@@ -71,6 +75,7 @@ function defaultDrawing(color) {
 class Room {
   constructor(code, onChange) {
     this.code = code;
+    this.theme = defaultTheme();
     this.onChange = onChange;
     this.players = new Map();
     this.hostSockets = new Set();
@@ -166,13 +171,22 @@ class Room {
 
   // ---------- controls (TV buttons or the VIP's phone) ----------
 
-  control(type) {
+  control(type, arg) {
     switch (type) {
+      case 'theme': return this.setTheme(arg);
+      case 'toggleTheme': return this.setTheme(this.theme === 'halloween' ? 'sunny' : 'halloween');
       case 'start': return this.start();
       case 'skip': return this.skip();
       case 'playAgain': return this.playAgain();
       default: return 'Unknown action';
     }
+  }
+
+  setTheme(theme) {
+    if (!THEMES.includes(theme)) return 'Unknown theme';
+    if (this.phase !== 'lobby') return 'Pick the theme before starting';
+    this.theme = theme;
+    return null;
   }
 
   start() {
@@ -356,6 +370,7 @@ class Room {
     const vip = this.vipId;
     const v = {
       code: this.code,
+      theme: this.theme,
       phase: this.phase,
       game: this.game,
       games: this.games,
@@ -399,4 +414,4 @@ class Room {
   }
 }
 
-module.exports = { Room, GAMES, SECONDS, DRAW, starsFor, validDrawing };
+module.exports = { Room, GAMES, SECONDS, DRAW, THEMES, defaultTheme, starsFor, validDrawing };

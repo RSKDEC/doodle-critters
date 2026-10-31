@@ -11,12 +11,14 @@ Games.dragon = (ctx) => {
     p, f: ageFactor(p.age), x: 0, noisy: 0, stun: 0, place: 0, top: 47 + i * laneH,
   }));
 
-  ctx.stage.innerHTML = `<div class="scene meadow dragon-scene" data-state="awake">
+  const hw = ctx.theme === 'halloween';
+  ctx.stage.innerHTML = `<div class="scene meadow dragon-scene ${hw ? 'dusk' : ''}" data-state="awake">
     <div class="sun"></div><div class="cloud c1"></div><div class="cloud c2"></div>
     <div class="night"></div>
     <div class="castle">🏰</div>
     <div class="hill"></div>
-    ${dragonSvg()}
+    ${dragonSvg(hw)}
+    ${hw ? `<div class="track-pumpkins">${[0, 1, 2, 1].map((f) => pumpkinSvg('', f)).join('')}</div>` : ''}
     <div class="zzz"><span>Z</span><span>z</span><span>z</span></div>
     <div class="d-banner"></div>
     <div class="finish-line" style="left:${FINISH + 6}%"></div>
@@ -119,7 +121,8 @@ Games.dragon = (ctx) => {
 
 // An original chubby green dragon napping on the hill. CSS swaps its eyes
 // open/closed using the scene's data-state.
-function dragonSvg() {
+function dragonSvg(witchHat = false) {
+  const hat = witchHat ? `<g transform="translate(116 84) rotate(-14) scale(1.05)">${COSTUMES[0].svg}</g>` : '';
   return `<svg class="dragon" viewBox="0 0 400 300" aria-hidden="true">
     <path d="M300 210 Q370 200 380 150 Q385 120 360 118 Q372 140 350 160 Q320 185 290 190Z" fill="#3faa5a" stroke="#1f5a2f" stroke-width="6" stroke-linejoin="round"/>
     <path d="M150 120 L120 50 L190 100Z M200 105 L215 35 L250 108Z" fill="#7fd08f" stroke="#1f5a2f" stroke-width="6" stroke-linejoin="round" class="wings"/>
@@ -140,6 +143,7 @@ function dragonSvg() {
       </g>
       <path class="d-smile" d="M95 200 Q115 214 135 198" fill="none" stroke="#1f5a2f" stroke-width="5" stroke-linecap="round"/>
       <circle cx="150" cy="175" r="10" fill="#ff9aa8" opacity=".7"/>
+      ${hat}
     </g>
   </svg>`;
 }
