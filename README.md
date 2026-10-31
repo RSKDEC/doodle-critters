@@ -46,7 +46,7 @@ There are three ways to get the game onto the TV:
 ### One-time Cast setup
 
 1. In the [Google Cast SDK Developer Console](https://cast.google.com/publish) (the same account as Smuggler, so there's no extra fee), choose **Add new application → Custom Receiver** and set the receiver URL to `https://doodle-critters.onrender.com/cast`.
-2. Copy the **Application ID** into `CAST_APP_ID` in `server.js`, or set it as a `CAST_APP_ID` environment variable in Render. Until it's set, the Cast button stays hidden.
+2. The Application ID goes in `CAST_APP_ID` in `server.js` (the default is `791CB81D`, registered for doodle-critters.onrender.com), or set a `CAST_APP_ID` environment variable in Render to override it.
 3. Your Chromecast is already registered as a test device on the account. If casting doesn't start, restart the Chromecast.
 
 ### Android TV app

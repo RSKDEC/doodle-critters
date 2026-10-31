@@ -25,7 +25,7 @@ app.get('/tv', (req, res) => res.sendFile(path.join(pub, 'tv.html')));
 app.get('/app', (req, res) => res.redirect('/doodle-critters-tv.apk'));
 // Runtime config for the phones. The Cast App ID is public (every sender sees it);
 // CAST_APP_ID overrides the default, e.g. for a second deployment.
-const CAST_APP_ID = process.env.CAST_APP_ID ?? '';
+const CAST_APP_ID = process.env.CAST_APP_ID ?? '791CB81D';
 app.get('/config.js', (req, res) => {
   res.type('application/javascript').set('Cache-Control', 'no-store');
   res.send(`window.CRITTERS_CONFIG = ${JSON.stringify({ castAppId: CAST_APP_ID })};`);
