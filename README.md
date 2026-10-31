@@ -11,6 +11,10 @@ A party game for kids aged 4–8. The game runs on the TV, and kids play on phon
    - 🪶 **Feather Float:** blow softly to keep your feather in the cloud zone.
 4. **Parade:** every critter marches with its own medal (Balloon Boss, Dragon Dodger, Super Seeker…), and the team counts up its stars.
 
+After every game, a **leaderboard** ranks everyone by total stars (🥇🥈🥉), showing the stars each kid just won. Each phone shows "You're #2!". At the end, **any kid can press Play again** on their phone (or press OK on the remote in the TV app).
+
+**Joining late:** the room code is always in the TV's top bar, and the leaderboard shows the QR code. A kid who joins mid-game gets a welcome, draws their critter on the phone while they wait, and plays from the next game. Kids who ran out of drawing time can tap **Draw my own critter** later too.
+
 ## 🎃 Halloween theme
 
 A cozy, never-scary Halloween look that turns on by itself in October. The leader (👑) can switch between **☀️ Sunny** and **🎃 Halloween** on their phone in the lobby; the TV has the same toggle when it's run from a laptop.

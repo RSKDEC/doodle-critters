@@ -370,3 +370,25 @@ input:focus { outline: none; border-color: var(--pink); }
 .dusk .cloud { opacity: .35; }
 .track-pumpkins { position: absolute; left: 4%; right: 30%; bottom: -1.5%; display: flex; justify-content: space-around; z-index: 1; opacity: .9; }
 .track-pumpkins .pumpkin { width: 3vw; }
+
+/* ---------- always-visible join code & leaderboard ---------- */
+.join-pill { background: #fff; color: var(--ink); border-radius: 999px; padding: .3vh 1vw; font-size: 1.2vw; font-weight: 700; box-shadow: 0 .4vh 0 rgba(38,49,79,.15); white-space: nowrap; }
+.join-pill b { color: var(--pink); letter-spacing: .1vw; }
+.results { flex: 1; display: grid; grid-template-columns: 1fr 17vw; gap: 2.5vw; align-items: center; }
+.board-col { display: flex; flex-direction: column; gap: 1.6vh; }
+.leaderboard { display: flex; flex-direction: column; gap: .9vh; }
+.lb-row { display: grid; grid-template-columns: 4vw 4.4vw 1fr auto 8vw; align-items: center; gap: 1.2vw; background: #fff; color: var(--ink); border-radius: 999px; padding: .4vh 1.6vw .4vh 1vw; font-size: 1.9vw; font-weight: 800; animation: fadeUp .45s both; box-shadow: 0 .5vh 0 rgba(38,49,79,.12); }
+.lb-row.top { background: linear-gradient(90deg, #fff4c2, #fff); box-shadow: 0 0 0 .3vw var(--sun), 0 .5vh 0 rgba(38,49,79,.12); }
+.lb-place { font-size: 2.4vw; text-align: center; }
+.lb-critter .critter { width: 4vw; height: 4vw; }
+.lb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lb-got .stars { font-size: 2.2vw; }
+.lb-got .star.on { display: inline-block; animation: pop .4s both; animation-delay: var(--d); }
+.lb-got small { color: var(--muted); font-size: 1.2vw; }
+.lb-total { text-align: right; }
+.join-corner { background: #fff; color: var(--ink); border-radius: var(--radius); padding: 1.6vh 1vw; display: flex; flex-direction: column; align-items: center; gap: .6vh; text-align: center; font-size: 1.3vw; box-shadow: 0 .8vh 0 rgba(38,49,79,.12); }
+.join-corner img { width: 12vw; }
+.join-corner .code-sm { color: var(--pink); font-size: 1.8vw; letter-spacing: .2vw; }
+.remote-hint { margin-top: 1vh; }
+/* The readability shadow is only for text on the night sky, not inside white cards. */
+[data-theme="halloween"] .card :is(.how, h1, h2) { text-shadow: none; }

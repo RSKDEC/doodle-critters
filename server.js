@@ -133,7 +133,7 @@ io.on('connection', (socket) => {
     let error;
     if (msg.type === 'drawing') error = r.submitDrawing(p, msg.drawing);
     else if (msg.type === 'hide') error = r.hide(p, msg.spot);
-    else if (p.id === r.vipId) error = r.control(msg.type, msg.theme);
+    else if (msg.type === 'playAgain' || p.id === r.vipId) error = r.control(msg.type, msg.theme);
     else error = 'Only the first player can do that';
     reply(cb, { error: error || null });
     broadcast(r);

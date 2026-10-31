@@ -10,7 +10,7 @@ const SECONDS = {
   draw: 100,
   meetPer: 3.4,
   intro: 9,
-  results: 7,
+  results: 10,
   // The TV runs each game's clock and reports the result; these are the
   // server's failsafe limits in case the TV disappears mid-game.
   play: { balloon: 22, dragon: 60, feather: 22 },
@@ -95,8 +95,10 @@ class Room {
     this.games = [];
     this.seek = null;
     this.results = null;
+    this.participants = new Set();
     for (const p of this.players.values()) {
       p.critter = null;
+      p.autoCritter = false;
       p.stars = 0;
       p.gameStars = {};
     }
@@ -165,7 +167,11 @@ class Room {
       id: crypto.randomUUID(), key: `p${this.nextKey++}`, name, age, color,
       connected: true, socketId: null, critter: null, stars: 0, gameStars: {},
     };
-    if (!['lobby', 'draw'].includes(this.phase)) player.critter = defaultDrawing(color);
+    // Joining mid-game: a stand-in critter until they draw their own (they can, anytime).
+    if (!['lobby', 'draw'].includes(this.phase)) {
+      player.critter = defaultDrawing(color);
+      player.autoCritter = true;
+    }
     this.players.set(player.id, player);
     return { player };
   }
@@ -225,17 +231,24 @@ class Room {
   // ---------- drawing & meeting the critters ----------
 
   submitDrawing(p, drawing) {
-    if (this.phase !== 'draw') return 'Drawing time is over';
+    // Late joiners (and kids who ran out of drawing time) can draw their critter later.
+    if (this.phase !== 'draw' && !p.autoCritter) return 'Drawing time is over';
     const d = validDrawing(drawing);
     if (!d) return 'Draw something first!';
     p.critter = d;
-    if (this.connected().every((x) => x.critter)) this.beginMeet();
+    p.autoCritter = false;
+    if (this.phase === 'draw' && this.connected().every((x) => x.critter)) this.beginMeet();
     return null;
   }
 
   beginMeet() {
     if (this.phase !== 'draw') return;
-    for (const p of this.players.values()) if (!p.critter) p.critter = defaultDrawing(p.color);
+    for (const p of this.players.values()) {
+      if (!p.critter) {
+        p.critter = defaultDrawing(p.color);
+        p.autoCritter = true;
+      }
+    }
     this.phase = 'meet';
     this.setTimer(Math.max(5, this.players.size * SECONDS.meetPer + 1.5), () => this.nextGame());
   }
@@ -259,6 +272,8 @@ class Room {
   beginPlay() {
     if (this.phase !== 'intro') return;
     this.phase = 'play';
+    // Everyone here now plays this game; anyone joining mid-game waits for the next.
+    this.participants = new Set(this.active().map((p) => p.id));
     if (this.game === 'seek') {
       const hiders = shuffle(this.connected()).slice(0, SECONDS.maxSeekRounds).map((p) => p.id);
       this.seek = { hiders, round: 0, hiderId: null, spot: null, stage: 'hide', finderId: null, tally: {} };
@@ -283,6 +298,7 @@ class Room {
   finishGame(scoresById, starsById = null) {
     const stars = {};
     for (const p of this.players.values()) {
+      if (!this.participants.has(p.id)) continue;
       const s = starsById ? starsById[p.id] || 1 : starsFor(scoresById[p.id] || 0);
       p.gameStars[this.game] = s;
       p.stars += s;
@@ -363,6 +379,8 @@ class Room {
     return {
       key: p.key, name: p.name, age: p.age, color: p.color, connected: p.connected,
       vip: p.id === vip, critter: p.critter, drawn: this.phase === 'draw' ? !!p.critter : undefined,
+      auto: !!p.autoCritter,
+      waiting: this.phase === 'play' && !this.participants.has(p.id),
       stars: p.stars, gameStars: p.gameStars,
     };
   }

@@ -105,6 +105,18 @@ server.listen(0, async () => {
         await waitHost((st) => st.phase === 'results');
         assert.ok(inputs.some((m) => m.kind === 'light' && m.x === 0.4), 'light input relayed');
       } else {
+        if (gameName === 'feather') {
+          // A latecomer joins mid-game: she waits, draws her own critter now, earns nothing yet.
+          const zoe = open();
+          zoe.on('player:state', (st) => latest.set('Zoe', st));
+          await call(zoe, 'player:join', { code, name: 'Zoe', age: 5 });
+          const st = await waitHost((s) => s.players.some((p) => p.name === 'Zoe'));
+          const z = st.players.find((p) => p.name === 'Zoe');
+          assert.ok(z.critter && z.auto && z.waiting, 'latecomer gets a stand-in critter and waits');
+          assert.strictEqual((await call(zoe, 'player:action', { type: 'drawing', drawing: doodle(7) })).error, null, 'latecomer can draw');
+          await waitHost((s) => s.players.find((p) => p.name === 'Zoe').auto === false);
+          kids.push({ name: 'Zoe', s: zoe });
+        }
         // Mic levels from phones reach the TV.
         kids[0].s.emit('player:input', { kind: 'mic', e: 0.8 });
         await new Promise((r) => setTimeout(r, 30));
@@ -119,20 +131,23 @@ server.listen(0, async () => {
           [res.results.stars[keyOf('Mia')], res.results.stars[keyOf('Leo')], res.results.stars[keyOf('Ava')]],
           [3, 2, 1],
         );
+        if (gameName === 'feather') assert.strictEqual(res.results.stars[keyOf('Zoe')], undefined, 'latecomer earns nothing this game');
       }
     }
 
     await skip(); // last results -> parade
     const parade = await waitHost((st) => st.phase === 'parade');
     // Mic games: Mia 3+3+3, Leo 2+2+2, Ava 1+1+1, plus seek stars.
-    const seekStars = Object.fromEntries(parade.players.map((p) => [p.name, p.gameStars.seek]));
+    // Zoe joined after hide & seek, so she has no stars for it.
+    const seekStars = Object.fromEntries(parade.players.filter((p) => p.name !== 'Zoe').map((p) => [p.name, p.gameStars.seek]));
     assert.ok(Object.values(seekStars).every((s) => s >= 1 && s <= 3));
     assert.strictEqual(parade.players.find((p) => p.name === 'Mia').stars, 9 + seekStars.Mia);
     assert.strictEqual(parade.players.find((p) => p.name === 'Ava').stars, 3 + seekStars.Ava);
 
-    assert.strictEqual((await act(0, { type: 'playAgain' })).error, null);
-    await waitHost((st) => st.phase === 'draw' && st.players.every((p) => !p.critter));
-    console.log('✓ smoke test passed: draw, meet, balloon, dragon, hide & seek, feather, parade');
+    assert.strictEqual(parade.players.find((p) => p.name === 'Zoe').stars, 0);
+    assert.strictEqual((await act(1, { type: 'playAgain' })).error, null, 'anyone can press play again');
+    await waitHost((st) => st.phase === 'draw' && st.players.length === 4 && st.players.every((p) => !p.critter));
+    console.log('✓ smoke test passed: draw, meet, balloon, dragon, hide & seek, feather, parade, late join, play again');
     process.exit(0);
   } catch (e) {
     console.error('✗ smoke test failed:', e);

@@ -180,9 +180,24 @@ const MAX_STROKES = 750;
 const padPoints = () => pad.strokes.reduce((n, s) => n + s.p.length / 2, 0);
 let inkLeft = MAX_POINTS; // updated on stroke start; cheaper than recounting on every move
 
-function drawScreen() {
+// Kids who joined late (or ran out of drawing time) can draw their critter now,
+// unless they're in the middle of playing a game.
+// The pad opens by itself while there's nothing else for them to do (meeting
+// the critters, or waiting out a game they joined late); elsewhere they tap a button.
+let wantPad = false;
+function needsLatePad(s) {
+  const p = s.players.find((x) => x.key === s.me.key);
+  if (!p || !p.auto || s.phase === 'lobby' || s.phase === 'draw') return false;
+  if (s.phase === 'play' && !p.waiting) return false; // they're playing right now
+  return wantPad || s.phase === 'meet' || (s.phase === 'play' && p.waiting);
+}
+
+// Shown on results/parade to kids still using a stand-in critter.
+const drawOwnButton = () => (meP() && meP().auto ? '<button class="big" data-drawown>🖍️ Draw my own critter</button>' : '');
+
+function drawScreen(late = false) {
   const p = meP();
-  if (p && p.drawn) {
+  if (!late && p && p.drawn) {
     return `${bar()}
       <div class="card center">
         <h2>Great drawing! 🎉</h2>
@@ -191,8 +206,9 @@ function drawScreen() {
       </div>`;
   }
   if (!pad) pad = { strokes: [], eyes: [], history: [], color: 0, width: 1, eyesTool: false };
-  return `${bar()}<div class="timerline"><div class="fuse"><div class="fuse-bar" data-fuse></div></div></div>
-    <h2 class="center">Draw your critter! 🖍️</h2>
+  return `${bar()}${late ? '' : '<div class="timerline"><div class="fuse"><div class="fuse-bar" data-fuse></div></div></div>'}
+    <h2 class="center">${late ? `Welcome, ${esc(state.me.name)}! 👋<br>Draw your critter 🖍️` : 'Draw your critter! 🖍️'}</h2>
+    ${late ? '<p class="center muted" style="margin:0">It joins the fun as soon as you press Done!</p>' : ''}
     <canvas id="pad"></canvas>
     <div class="palette">${PALETTE.map((c, i) => `<button class="swatch ${!pad.eyesTool && pad.color === i ? 'on' : ''}" style="--c:${c}" data-color="${i}" aria-label="Color ${i + 1}"></button>`).join('')}</div>
     <div class="tools">
@@ -394,14 +410,37 @@ function seekScreen() {
   return `${bar()}<div class="card center"><h2>${msg}</h2>${lookAtTv()}</div>`;
 }
 
+// Place on the leaderboard (ties share a place, like the TV).
+function myPlace() {
+  const me = meP();
+  const higher = new Set(state.players.filter((p) => p.stars > (me ? me.stars : 0)).map((p) => p.stars));
+  return higher.size + 1;
+}
+
 function resultsScreen() {
-  const n = state.results.stars[state.me.key] || 1;
+  const n = state.results.stars[state.me.key];
   const info = gameInfo(state.results.game, state.theme);
+  const me = meP();
+  if (!n) {
+    return `${bar()}<div class="card center"><div class="big-emoji">🎉</div><h2>You'll play the next game!</h2>${lookAtTv()}</div>${drawOwnButton()}`;
+  }
+  const place = myPlace();
   return `${bar()}
     <div class="card center">
       <div class="big-emoji">${info.emoji}</div>
       <h2>${['Good try!', 'Great job!', 'Amazing!'][n - 1]}</h2>
       <div class="stars big">${starsHtml(n)}</div>
+      <p class="how">${['🥇', '🥈', '🥉'][place - 1] || '🏅'} You're #${place} with ${me ? me.stars : 0} ${prize(state.theme)}</p>
+    </div>
+    ${drawOwnButton()}
+    ${lookAtTv('Look at the leaderboard on the TV! 📺')}`;
+}
+
+function waitingScreen() {
+  return `${bar()}<div class="card center">
+      <div class="preview">${critterSvg(meP() && meP().critter, { cls: 'alive walking' })}</div>
+      <h2>You'll join the next game! 🎉</h2>
+      ${lookAtTv('Watch the TV, your turn is coming!')}
     </div>`;
 }
 
@@ -415,11 +454,14 @@ function paradeScreen() {
       <div class="preview">${critterSvg(p && p.critter, { cls: 'alive' })}</div>
       <p class="how">${emoji} ${p ? p.stars : 0} ${prizeWord(state.theme, p ? p.stars : 0)}!</p>
     </div>
-    ${state.me.vip ? '<button class="primary big" data-act="playAgain">Play again! 🎨</button>' : lookAtTv()}`;
+    <button class="primary big" data-act="playAgain">Play again! 🎨</button>
+    ${drawOwnButton()}`;
 }
 
 function screenKey(s) {
   const p = s.players.find((x) => x.key === s.me.key);
+  if (needsLatePad(s)) return 'latepad';
+  if (s.phase === 'play' && p && p.waiting) return `waiting:${s.gameIdx}`;
   switch (s.phase) {
     case 'lobby': return `lobby:${mic.ok}:${s.theme}`;
     case 'draw': return `draw:${p && p.drawn ? 'done' : 'pad'}`;
@@ -428,12 +470,14 @@ function screenKey(s) {
       return `play:${s.game}:${mic.ok}`;
     case 'intro': return `intro:${s.gameIdx}:${mic.ok}`;
     case 'results': return `results:${s.gameIdx}`;
-    case 'parade': return `parade:${s.me.vip}`;
+    case 'parade': return 'parade';
     default: return `${s.phase}:${s.gameIdx}:${s.game}`;
   }
 }
 
 function build() {
+  if (screen === 'latepad') return drawScreen(true);
+  if (screen.startsWith('waiting:')) return waitingScreen();
   switch (state.phase) {
     case 'lobby': return lobbyScreen();
     case 'draw': return drawScreen();
@@ -450,8 +494,11 @@ function build() {
 // updates about other players.
 function render(force = false) {
   if (!state) return;
-  if (state.phase !== 'draw') pad = null;
   const key = screenKey(state);
+  const padScreen = key === 'draw:pad' || key === 'latepad';
+  const me = state.players.find((x) => x.key === state.me.key);
+  if (!padScreen && !(me && me.auto && state.phase !== 'lobby')) pad = null;
+  if (me && !me.auto) wantPad = false;
   if (!force && key === screen) {
     const live = document.getElementById('live');
     if (live && state.phase === 'lobby') live.innerHTML = lobbyLive();
@@ -459,7 +506,7 @@ function render(force = false) {
   }
   screen = key;
   app.innerHTML = build();
-  if (state.phase === 'draw') setupPad();
+  if (padScreen) setupPad();
   if (document.getElementById('lightpad')) setupLightpad();
 }
 
@@ -515,6 +562,7 @@ app.addEventListener('click', async (e) => {
   if (!el || el.disabled) return;
   const d = el.dataset;
   if (d.cast) castSender.show(d.cast === 'room' && state ? state.code : null);
+  else if (d.drawown !== undefined) { wantPad = true; render(true); }
   else if (d.themePick) act({ type: 'theme', theme: d.themePick });
   else if (d.act) act({ type: d.act });
   else if (d.mic !== undefined) {

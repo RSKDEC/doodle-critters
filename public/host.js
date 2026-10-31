@@ -73,6 +73,10 @@ const unlockSound = () => {
 };
 document.addEventListener('click', unlockSound);
 document.addEventListener('keydown', unlockSound);
+// TV remote: OK at the parade starts a new game.
+document.addEventListener('keydown', (e) => {
+  if (state && state.phase === 'parade' && (e.key === 'Enter' || e.keyCode === 23 || e.key === ' ')) act('playAgain');
+});
 if (NO_INPUT) setTimeout(unlockSound, 0);
 
 app.addEventListener('click', (e) => {
@@ -106,6 +110,19 @@ function cues(prev, s) {
   if (phaseChanged) {
     timers.splice(0).forEach(clearTimeout);
     voice.stop();
+  }
+  if (s.phase !== 'lobby' && prev) {
+    const quiet = s.phase === 'play'; // don't talk over the mic games
+    for (const p of s.players) {
+      const before = prev.players.find((q) => q.key === p.key);
+      if (!before) {
+        sound.play('pop');
+        if (!quiet) voice.say(`Welcome, ${p.name}! Draw your critter on your phone!`);
+      } else if (before.auto && !p.auto) {
+        sound.play('sparkle');
+        if (!quiet) voice.say(`${p.name}'s critter is ready!`);
+      }
+    }
   }
   if (s.phase === 'lobby' && prev) {
     const fresh = s.players.filter((p) => !prev.players.some((q) => q.key === p.key));
@@ -209,7 +226,7 @@ function renderPlay() {
     <div class="tv-top">
       <div class="logo small">${logo()}</div>
       <div class="info">${info.emoji} ${esc(info.title)}</div>
-      <div class="top-right">${soundBtn()}<div class="timer" id="gclock"></div></div>
+      <div class="top-right">${joinPill()}${soundBtn()}<div class="timer" id="gclock"></div></div>
     </div>
     <div class="fuse"><div class="fuse-bar" id="gfuse"></div></div>
     <div class="stage" id="stage"></div>
@@ -233,13 +250,15 @@ function soundBtn() {
     : '<button class="ghost soundbtn hint" data-act="sound">🔈 Click for sound</button>';
 }
 
+const joinPill = () => `<span class="join-pill">📱 Join: <b>${esc(state.code)}</b></span>`;
+
 function header(extra = '') {
   const step = state.gameIdx >= 0 && state.phase !== 'parade' ? `Game ${state.gameIdx + 1} of ${state.games.length}` : '';
   return `
     <div class="tv-top">
       <div class="logo small">${logo()}</div>
       <div class="info">${extra || step}</div>
-      <div class="top-right">${soundBtn()}<div class="timer" data-timer></div></div>
+      <div class="top-right">${joinPill()}${soundBtn()}<div class="timer" data-timer></div></div>
     </div>
     ${state.deadline ? '<div class="fuse"><div class="fuse-bar" data-fuse></div></div>' : ''}`;
 }
@@ -317,18 +336,42 @@ function introScreen() {
     </div>`;
 }
 
+// Ranks with ties sharing a place: 7, 7, 5 -> 1st, 1st, 2nd.
+function ranked(players) {
+  const sorted = players.slice().sort((a, b) => b.stars - a.stars);
+  let place = 0;
+  let last = null;
+  return sorted.map((p) => {
+    if (p.stars !== last) { place++; last = p.stars; }
+    return { p, place };
+  });
+}
+
+const MEDALS = ['🥇', '🥈', '🥉'];
+
 function resultsScreen() {
   const info = gameInfo(state.results.game, state.theme);
+  const rows = ranked(state.players);
   return `
     ${header()}
-    <div class="center-screen results">
-      <h1>${info.emoji} ${esc(info.title)}</h1>
-      <div class="result-grid">${state.players.map((p, i) => `
-        <div class="result" style="animation-delay:${i * 0.15}s">
-          ${critterSvg(p.critter, { cls: 'alive' })}
-          <b>${esc(p.name)}</b>
-          <div class="stars" style="--d:${0.6 + i * 0.15}s">${starsHtml(state.results.stars[p.key] || 1)}</div>
-        </div>`).join('')}
+    <div class="results">
+      <div class="board-col">
+        <h1>${info.emoji} ${esc(info.title)}</h1>
+        <div class="leaderboard">${rows.map(({ p, place }, i) => {
+          const got = state.results.stars[p.key];
+          return `<div class="lb-row ${place === 1 ? 'top' : ''}" style="animation-delay:${0.2 + i * 0.12}s">
+            <span class="lb-place">${p.stars ? MEDALS[place - 1] || place : '👋'}</span>
+            <span class="lb-critter">${critterSvg(p.critter, { cls: 'alive', feet: false })}</span>
+            <span class="lb-name">${esc(p.name)}</span>
+            <span class="lb-got">${got ? `<span class="stars" style="--d:${0.6 + i * 0.12}s">${starsHtml(got)}</span>` : '<small>joins next game!</small>'}</span>
+            <span class="lb-total">${p.stars} ${prize(state.theme)}</span>
+          </div>`;
+        }).join('')}</div>
+      </div>
+      <div class="join-corner">
+        ${qr ? `<img src="${qr}" alt="QR code to join">` : ''}
+        <b>New friends can join!</b>
+        <span>Code <b class="code-sm">${esc(state.code)}</b></span>
       </div>
     </div>`;
 }
@@ -352,6 +395,7 @@ function paradeScreen() {
       }).join('')}</div>
       <div class="marching">${state.players.concat(state.players).map((p) => critterSvg(p.critter, { cls: 'alive walking' })).join('')}</div>
       <div class="tv-actions"><button data-act="playAgain" class="primary">Play again 🎨</button></div>
+      ${NO_INPUT ? '<p class="sub remote-hint">Press <b>OK</b> on the remote, or <b>Play again</b> on any phone!</p>' : ''}
     </div>`;
 }
 
