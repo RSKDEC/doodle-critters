@@ -17,6 +17,7 @@ const pub = path.join(__dirname, 'public');
 app.use(express.static(pub));
 app.get('/host', (req, res) => res.sendFile(path.join(pub, 'host.html')));
 app.get('/play', (req, res) => res.sendFile(path.join(pub, 'play.html')));
+app.get('/ping', (req, res) => res.type('text/plain').set('Cache-Control', 'no-store').send('ok'));
 // Chromecast Web Receiver (register https://<host>/cast in the Google Cast console).
 app.get('/cast', (req, res) => res.sendFile(path.join(pub, 'cast.html')));
 // The Android TV app (android-tv/) opens this: the TV screen without buttons.

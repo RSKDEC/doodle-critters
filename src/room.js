@@ -20,11 +20,11 @@ const SECONDS = {
   maxSeekRounds: 4,
 };
 // Drawing limits (canvas is 300x300 on the phone).
-const DRAW = { size: 300, maxStrokes: 300, maxPoints: 9000, palette: 8, widths: 3, maxEyes: 6 };
+const DRAW = { size: 300, maxStrokes: 800, maxPoints: 24000, palette: 8, widths: 3, maxEyes: 6 };
 
 const THEMES = ['sunny', 'halloween'];
 // Halloween decorations come out on their own in October.
-const defaultTheme = (d = new Date()) => (d.getMonth() === 9 ? 'halloween' : 'sunny');
+const defaultTheme = (d = new Date()) => (d.getMonth() === 9 || (d.getMonth() === 10 && d.getDate() === 1) ? 'halloween' : 'sunny');
 
 const norm = (s) => String(s || '').trim().toLowerCase();
 
@@ -165,6 +165,7 @@ class Room {
       id: crypto.randomUUID(), key: `p${this.nextKey++}`, name, age, color,
       connected: true, socketId: null, critter: null, stars: 0, gameStars: {},
     };
+    if (!['lobby', 'draw'].includes(this.phase)) player.critter = defaultDrawing(color);
     this.players.set(player.id, player);
     return { player };
   }

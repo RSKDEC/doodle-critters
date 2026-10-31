@@ -38,7 +38,7 @@ Games.dragon = (ctx) => {
   // Dragon moods: awake (make noise!) -> drowsy (warning) -> asleep (silence!).
   let mood = 'awake';
   let moodLeft = 3.5;
-  let grace = 0; // nobody can be caught right after a roar or as it dozes off
+  let grace = 0; // nobody can be caught as it dozes off, or while the TV plays the "puff" sound
   let finished = 0;
 
   const setMood = (m) => {
@@ -85,12 +85,14 @@ Games.dragon = (ctx) => {
       if (mood === 'asleep') {
         // Sustained noise while it sleeps gets you caught. Little kids get more slack.
         const limit = 0.3 * Math.sqrt(r.f);
-        r.noisy = e > limit && grace <= 0 ? r.noisy + dt : 0;
+        r.noisy = e > limit && grace <= 0 && r.stun <= 0 ? r.noisy + dt : 0;
         if (r.noisy > 0.3) {
           r.noisy = 0;
-          r.x = Math.max(0, r.x - 0.16);
-          r.stun = 1.2;
-          grace = 1.0;
+          r.x = Math.max(0, r.x - 0.3);
+          r.stun = 2;
+          // Only a short pause for everyone (the TV's puff sound reaches the phones too);
+          // one noisy kid getting caught mustn't protect the others for long.
+          grace = 0.4;
           el.classList.remove('caught');
           void el.offsetWidth;
           el.classList.add('caught');
@@ -99,7 +101,9 @@ Games.dragon = (ctx) => {
           ctx.sound.play('puff');
         }
       } else if (r.stun <= 0) {
-        r.x = Math.min(1, r.x + e * 0.085 * Math.sqrt(r.f) * dt * 1.6);
+        // Normal noise is full speed; shouting louder doesn't help (and saves little voices).
+        const push = Math.min(1, e / 0.5);
+        r.x = Math.min(1, r.x + push * 0.05 * Math.sqrt(r.f) * dt);
         if (r.x >= 1) {
           r.place = ++finished;
           el.classList.add('home');

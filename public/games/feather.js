@@ -11,7 +11,7 @@ Games.feather = (ctx) => {
     const f = ageFactor(p.age);
     const mid = 0.58;
     const half = 0.13 * f;
-    return { p, f, y: 0.05, v: 0, inZone: 0, zone: [mid - half, Math.min(0.95, mid + half)], left: (i + 0.5) * (100 / n), phase: Math.random() * 6 };
+    return { p, f, y: 0.05, inZone: 0, zone: [mid - half, Math.min(0.95, mid + half)], left: (i + 0.5) * (100 / n), phase: Math.random() * 6 };
   });
   const laneW = Math.min(22, 92 / n);
   const yPct = (y) => TOP + (1 - y) * SPAN;
@@ -43,14 +43,12 @@ Games.feather = (ctx) => {
     t += dt;
     lanes.forEach((l, i) => {
       const e = ctx.effort(l.p.key);
-      // Gentle blowing hovers; hard blowing shoots up. Younger kids get a softer gravity.
-      const lift = e * 1.5;
-      const gravity = 0.55 / l.f;
-      l.v += (lift - gravity) * dt;
-      l.v *= Math.pow(0.35, dt);
-      l.y += l.v * dt;
-      if (l.y < 0) { l.y = 0; l.v = 0; }
-      if (l.y > 1) { l.y = 1; l.v = -0.1; }
+      // A steady breath holds a steady height: softly = low, harder = high,
+      // stop = it drifts down. Younger kids reach the zone with a softer breath.
+      const target = Math.min(1, e * 1.6 * Math.sqrt(l.f));
+      const rate = target > l.y ? 1.6 : 0.9; // rises a bit faster than it sinks
+      l.y += (target - l.y) * (1 - Math.exp(-rate * dt));
+      l.y = Math.max(0, Math.min(1, l.y));
       const inZone = l.y >= l.zone[0] && l.y <= l.zone[1];
       if (inZone && clock.elapsed() > GRACE) l.inZone += dt;
       const sway = Math.sin(t * 2 + l.phase) * 18;

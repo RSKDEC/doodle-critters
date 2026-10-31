@@ -142,6 +142,9 @@ const meter = () => '<div class="meter"><div class="meter-ball" id="meter">🌬�
 
 const holdButton = () => '<button class="hold" data-hold>👇 Hold to blow</button>';
 
+// After a refresh mid-game the mic needs turning on again.
+const micButton = () => (!mic.ok && mic.supported ? '<button class="primary" data-mic>🎤 Turn on microphone</button>' : '');
+
 const lookAtTv = (text = 'Look at the TV! 📺') => `<p class="look">${text}</p>`;
 
 // ---------------- screens ----------------
@@ -172,6 +175,10 @@ function lobbyLive() {
 
 let pad = null; // { strokes, eyes, history, color, width, eyesTool }
 const PAD = 300;
+const MAX_POINTS = 22000;
+const MAX_STROKES = 750;
+const padPoints = () => pad.strokes.reduce((n, s) => n + s.p.length / 2, 0);
+let inkLeft = MAX_POINTS; // updated on stroke start; cheaper than recounting on every move
 
 function drawScreen() {
   const p = meP();
@@ -227,15 +234,28 @@ function setupPad() {
       for (let i = 2; i < s.p.length; i += 2) g.lineTo(s.p[i], s.p[i + 1]);
       g.stroke();
     }
-    for (const e of pad.eyes) {
-      const r = EYE_SIZES[e.s];
-      g.fillStyle = '#fff';
-      g.strokeStyle = '#1d1d1d';
-      g.lineWidth = 3;
-      g.beginPath(); g.arc(e.x, e.y, r, 0, Math.PI * 2); g.fill(); g.stroke();
-      g.fillStyle = '#1d1d1d';
-      g.beginPath(); g.arc(e.x, e.y + r * 0.1, r * 0.46, 0, Math.PI * 2); g.fill();
-    }
+    pad.eyes.forEach(drawEye);
+  }
+
+  function drawEye(e) {
+    const r = EYE_SIZES[e.s];
+    g.fillStyle = '#fff';
+    g.strokeStyle = '#1d1d1d';
+    g.lineWidth = 3;
+    g.beginPath(); g.arc(e.x, e.y, r, 0, Math.PI * 2); g.fill(); g.stroke();
+    g.fillStyle = '#1d1d1d';
+    g.beginPath(); g.arc(e.x, e.y + r * 0.1, r * 0.46, 0, Math.PI * 2); g.fill();
+  }
+
+  // Draw just the newest piece of a stroke, so big drawings stay fast.
+  function drawSegment(s, x0, y0, x1, y1) {
+    g.strokeStyle = PALETTE[s.c];
+    g.lineWidth = WIDTHS[s.w];
+    g.lineCap = 'round';
+    g.beginPath();
+    g.moveTo(x0, y0);
+    g.lineTo(x1, y1);
+    g.stroke();
   }
   redraw();
 
@@ -251,24 +271,32 @@ function setupPad() {
     const [x, y] = pos(ev);
     if (pad.eyesTool) {
       if (pad.eyes.length >= 6) return;
-      pad.eyes.push({ x, y, s: pad.width + 1 });
+      const eye = { x, y, s: pad.width + 1 };
+      pad.eyes.push(eye);
       pad.history.push('eye');
       buzz(20);
-      redraw();
+      drawEye(eye);
+      return;
+    }
+    inkLeft = MAX_POINTS - padPoints();
+    if (pad.strokes.length >= MAX_STROKES || inkLeft <= 0) {
+      error = 'Wow, your drawing is full! Press Done ✅';
+      app.querySelector('.err').textContent = error;
       return;
     }
     stroke = { c: pad.color, w: pad.width, p: [x, y] };
     pad.strokes.push(stroke);
     pad.history.push('stroke');
-    redraw();
+    drawSegment(stroke, x, y, x + 0.1, y);
   });
   canvas.addEventListener('pointermove', (ev) => {
     if (!stroke) return;
     const [x, y] = pos(ev);
     const n = stroke.p.length;
     if (Math.hypot(x - stroke.p[n - 2], y - stroke.p[n - 1]) < 2.5) return;
+    if (--inkLeft <= 0) { stroke = null; return; }
     stroke.p.push(x, y);
-    redraw();
+    drawSegment(stroke, stroke.p[n - 2], stroke.p[n - 1], x, y);
   });
   const end = () => { stroke = null; };
   canvas.addEventListener('pointerup', end);
@@ -313,7 +341,7 @@ function introScreen() {
       <div class="big-emoji">${info.emoji}</div>
       <h2>${esc(info.title)}</h2>
       <p class="how">${esc(info.phone)}</p>
-      ${MIC_GAMES.includes(state.game) ? `<p class="muted">Practice now! Hold the phone close to your mouth.</p>${meter()}${mic.ok ? '' : holdButton()}` : ''}
+      ${MIC_GAMES.includes(state.game) ? `<p class="muted">Practice now! Hold the phone close to your mouth.</p>${meter()}${micButton()}${mic.ok ? '' : holdButton()}` : ''}
       ${lookAtTv()}
     </div>`;
 }
@@ -326,6 +354,7 @@ function micGameScreen() {
       <p class="how">${esc(info.phone)}</p>
       ${meter()}
       ${mic.ok ? '<p class="muted">Blow or make noise into the phone!</p>' : ''}
+      ${micButton()}
       ${holdButton()}
       ${lookAtTv()}
     </div>`;
@@ -396,7 +425,8 @@ function screenKey(s) {
     case 'draw': return `draw:${p && p.drawn ? 'done' : 'pad'}`;
     case 'play':
       if (s.game === 'seek') return `seek:${s.seek.round}:${s.seek.stage}:${s.seek.finder}`;
-      return `play:${s.game}`;
+      return `play:${s.game}:${mic.ok}`;
+    case 'intro': return `intro:${s.gameIdx}:${mic.ok}`;
     case 'results': return `results:${s.gameIdx}`;
     case 'parade': return `parade:${s.me.vip}`;
     default: return `${s.phase}:${s.gameIdx}:${s.game}`;
@@ -519,5 +549,18 @@ const release = () => {
 };
 window.addEventListener('pointerup', release);
 window.addEventListener('pointercancel', release);
+
+// Stop phones from locking during the TV-only parts of the game.
+let wakeLock = null;
+async function keepAwake() {
+  try {
+    if ('wakeLock' in navigator && document.visibilityState === 'visible' && !wakeLock) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    }
+  } catch {}
+}
+document.addEventListener('visibilitychange', keepAwake);
+document.addEventListener('pointerdown', keepAwake, { once: true });
 
 startTimerLoop(clock);

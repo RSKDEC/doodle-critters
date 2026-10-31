@@ -368,4 +368,8 @@ function render(force = false) {
   }
 }
 
+// Free hosting can put the server to sleep without regular web requests;
+// ping it every few minutes while the TV is showing the game.
+setInterval(() => { fetch('/ping', { cache: 'no-store' }).catch(() => {}); }, 4 * 60 * 1000);
+
 startTimerLoop(clock);
